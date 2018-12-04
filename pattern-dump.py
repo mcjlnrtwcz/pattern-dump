@@ -1,31 +1,9 @@
 #!/usr/bin/env python3
 import logging
 import tkinter as tk
+from tkinter import messagebox
 
-from diquencer import Sequencer
-from diquencer.models import Pattern, PatternEvent, MuteEvent
-from diquencer.sequence import Sequence
-
-
-class PatternDump:
-
-    def __init__(self):
-        self._sequencer = Sequencer()
-
-    def get_output_ports(self):
-        return self._sequencer.get_output_ports()
-
-    def set_output_port(self, port):
-        # TODO: Inform the user if port was set
-        self._sequencer.set_output_port(port)
-
-    def dump_pattern(self, tempo: int, pattern: int, bank: str, length: int) -> None:
-        pattern_event = PatternEvent(0, Pattern(pattern, bank, length), 1)
-        mute_event = MuteEvent(0, [2, 4, 6, 8])
-        events = [pattern_event, mute_event]
-        sequence = Sequence(tempo, events)
-        self._sequencer.set_sequence(sequence)
-        self._sequencer.start()
+from controller import PatternDumpController, WrongChannelError
 
 
 class PatternDumpGUI:
@@ -41,11 +19,13 @@ class PatternDumpGUI:
         self.bank.set('A')
         self.length = tk.StringVar()
         self.length.set('4')
+        self.midi_channel = tk.StringVar()
+        self.midi_channel.set('1')
         self.selected_midi_device = tk.StringVar()
 
         # Main window
 
-        self.root.geometry('400x300+0+0')
+        self.root.geometry('400x360+0+0')
         self.root.title('pattern-dump')
 
         # Configure grid
@@ -112,7 +92,7 @@ class PatternDumpGUI:
             sticky=tk.W+tk.E,
             padx=self.PAD,
         )
-        self.device_settings_frame.columnconfigure(0, weight=1)
+        self.device_settings_frame.columnconfigure(1, weight=1)
 
         # Audio device
         self.audio_device_selector_label = tk.Label(
@@ -134,6 +114,7 @@ class PatternDumpGUI:
         self.audio_device_selector.grid(
             row=1,
             column=0,
+            columnspan=2,
             sticky=tk.W+tk.E,
             pady=self.PAD
         )
@@ -149,14 +130,37 @@ class PatternDumpGUI:
             sticky=tk.W,
             pady=self.PAD
         )
+        self.midi_channel_label = tk.Label(
+            self.device_settings_frame,
+            text='MIDI channel'
+        )
+        self.midi_channel_label.grid(
+            row=3,
+            column=0,
+            sticky=tk.W,
+            pady=self.PAD
+        )
+        self.midi_channel_input = tk.Entry(
+            self.device_settings_frame,
+            width=2,
+            textvariable=self.midi_channel
+        )
+        self.midi_channel_input.grid(
+            row=3,
+            column=1,
+            sticky=tk.W,
+            padx=self.PAD,
+            pady=self.PAD
+        )
         self.midi_device_selector = tk.OptionMenu(
             self.device_settings_frame,
             self.selected_midi_device,
             *self.dumper.get_output_ports()
         )
         self.midi_device_selector.grid(
-            row=3,
+            row=4,
             column=0,
+            columnspan=2,
             sticky=tk.W+tk.E,
             pady=self.PAD
         )
@@ -172,6 +176,17 @@ class PatternDumpGUI:
 
     def dump(self):
         self.dumper.set_output_port(self.selected_midi_device.get())
+
+        try:
+            self.dumper.set_midi_channel(int(self.midi_channel.get()))
+        except ValueError:
+            messagebox.showerror('Error', 'MIDI channel must be an integer')
+        except WrongChannelError:
+            messagebox.showerror(
+                'Error',
+                'MIDI channel must be in range 1 to 16'
+            )
+
         try:
             self.dumper.dump_pattern(
                 120,
@@ -181,7 +196,7 @@ class PatternDumpGUI:
             )
         except ValueError:
             # TODO: Handle bad input (str to int conversion)
-            logging.warning('Invalid pattern settings')
+            messagebox.showerror('Error', 'Invalid pattern settings')
 
 
 if __name__ == '__main__':
@@ -190,6 +205,6 @@ if __name__ == '__main__':
         level=logging.DEBUG
     )
     root = tk.Tk()
-    dumper = PatternDump()
+    dumper = PatternDumpController()
     PatternDumpGUI(root, dumper)
     root.mainloop()
