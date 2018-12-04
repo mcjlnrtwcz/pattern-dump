@@ -19,13 +19,18 @@ class PatternDumpGUI:
         self.bank.set('A')
         self.length = tk.StringVar()
         self.length.set('4')
+        self.selected_audio_device = tk.StringVar()
+        self.samplerate = tk.StringVar()
+        self.samplerate.set('44100')
+        self.bitrate = tk.StringVar()
+        self.bitrate.set('16')
         self.midi_channel = tk.StringVar()
         self.midi_channel.set('1')
         self.selected_midi_device = tk.StringVar()
 
         # Main window
 
-        self.root.geometry('400x360+0+0')
+        self.root.geometry('400x480+0+0')
         self.root.title('pattern-dump')
 
         # Configure grid
@@ -107,9 +112,8 @@ class PatternDumpGUI:
         )
         self.audio_device_selector = tk.OptionMenu(
             self.device_settings_frame,
-            None,
-            'Device 1',
-            'Device 2'
+            self.selected_audio_device,
+            *self.dumper.get_audio_devices()
         )
         self.audio_device_selector.grid(
             row=1,
@@ -118,6 +122,59 @@ class PatternDumpGUI:
             sticky=tk.W+tk.E,
             pady=self.PAD
         )
+        self.samplerate_selector_label = tk.Label(
+            self.device_settings_frame,
+            text='Samplerate'
+        )
+        self.samplerate_selector_label.grid(
+            row=2,
+            column=0,
+            sticky=tk.W,
+            pady=self.PAD
+        )
+        self.samplerate_selector = tk.OptionMenu(
+            self.device_settings_frame,
+            self.samplerate,
+            *('44100', '48000')
+        )
+        self.samplerate_selector.grid(
+            row=2,
+            column=1,
+            columnspan=2,
+            sticky=tk.W+tk.E,
+            pady=self.PAD
+        )
+        self.bitrate_selector_label = tk.Label(
+            self.device_settings_frame,
+            text='Bitrate'
+        )
+        self.bitrate_selector_label.grid(
+            row=3,
+            column=0,
+            sticky=tk.W,
+            pady=self.PAD
+        )
+        self.bitrate_selector = tk.OptionMenu(
+            self.device_settings_frame,
+            self.bitrate,
+            *('16', '24', '32')
+        )
+        self.bitrate_selector.grid(
+            row=3,
+            column=1,
+            columnspan=2,
+            sticky=tk.W+tk.E,
+            pady=self.PAD
+        )
+
+        self.device_margin = tk.Frame(self.device_settings_frame)
+        self.device_margin.grid(
+            row=4,
+            column=0,
+            columnspan=2,
+            sticky=tk.W+tk.E,
+            pady=2*self.PAD
+        )
 
         # MIDI device
         self.midi_device_selector_label = tk.Label(
@@ -125,9 +182,21 @@ class PatternDumpGUI:
             text='MIDI device'
         )
         self.midi_device_selector_label.grid(
-            row=2,
+            row=5,
             column=0,
             sticky=tk.W,
+            pady=self.PAD
+        )
+        self.midi_device_selector = tk.OptionMenu(
+            self.device_settings_frame,
+            self.selected_midi_device,
+            *self.dumper.get_output_ports()
+        )
+        self.midi_device_selector.grid(
+            row=6,
+            column=0,
+            columnspan=2,
+            sticky=tk.W+tk.E,
             pady=self.PAD
         )
         self.midi_channel_label = tk.Label(
@@ -135,7 +204,7 @@ class PatternDumpGUI:
             text='MIDI channel'
         )
         self.midi_channel_label.grid(
-            row=3,
+            row=7,
             column=0,
             sticky=tk.W,
             pady=self.PAD
@@ -146,22 +215,10 @@ class PatternDumpGUI:
             textvariable=self.midi_channel
         )
         self.midi_channel_input.grid(
-            row=3,
+            row=7,
             column=1,
             sticky=tk.W,
             padx=self.PAD,
-            pady=self.PAD
-        )
-        self.midi_device_selector = tk.OptionMenu(
-            self.device_settings_frame,
-            self.selected_midi_device,
-            *self.dumper.get_output_ports()
-        )
-        self.midi_device_selector.grid(
-            row=4,
-            column=0,
-            columnspan=2,
-            sticky=tk.W+tk.E,
             pady=self.PAD
         )
 
@@ -176,6 +233,14 @@ class PatternDumpGUI:
 
     def dump(self):
         self.dumper.set_output_port(self.selected_midi_device.get())
+        try:
+            self.dumper.set_audio_device(
+                self.selected_audio_device.get(),
+                int(self.samplerate.get()),
+                int(self.bitrate.get())
+            )
+        except ValueError:
+            messagebox.showerror('Error', 'Invalid audio device settings')
 
         try:
             self.dumper.set_midi_channel(int(self.midi_channel.get()))
