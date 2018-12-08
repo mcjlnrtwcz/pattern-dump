@@ -1,3 +1,5 @@
+import logging
+
 from diquencer import Sequencer
 from diquencer.events import MuteEvent, PatternEvent
 from diquencer.models import Pattern
@@ -14,13 +16,12 @@ class PatternDumpController:
 
     def __init__(self):
         self._audio_recorder = AudioRecorder()
-        self._sequencer = Sequencer(stop_callback=self._audio_recorder.stop)
+        self._sequencer = Sequencer(start_callback=self._audio_recorder.start)
 
     def get_output_ports(self):
         return self._sequencer.get_output_ports()
 
     def set_output_port(self, port):
-        # TODO: Inform the user if port was set
         self._sequencer.set_output_port(port)
 
     def get_audio_devices(self):
@@ -44,9 +45,14 @@ class PatternDumpController:
             length: int
     ) -> None:
         pattern_event = PatternEvent(0, Pattern(pattern, bank, length), 1)
-        mute_event = MuteEvent(0, [2, 4, 6, 8])
-        events = [pattern_event, mute_event]
-        sequence = Sequence(tempo, events)
-        self._sequencer.set_sequence(sequence)
-        self._sequencer.start()
-        self._audio_recorder.start()
+        for track in range(1, 9):
+            logging.info(f'Recording track {track}')
+            mute_event = MuteEvent(0, (track, ))
+            events = [pattern_event, mute_event]
+            sequence = Sequence(tempo, events)
+            self._audio_recorder.filename = f'track{track}.wav'
+            self._audio_recorder.prepare_recording()
+            self._sequencer.set_sequence(sequence)
+            self._sequencer.start(blocking=True)
+            self._audio_recorder.stop()
+        logging.info('All tracks recorded')

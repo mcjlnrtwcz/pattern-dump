@@ -266,7 +266,7 @@ class PatternDumpGUI:
 
 if __name__ == '__main__':
     logging.basicConfig(
-        format='[%(asctime)s][%(levelname)s] %(message)s',
+        format='[%(asctime)s][%(levelname)s][%(module)s] %(message)s',
         level=logging.DEBUG
     )
     root = tk.Tk()
