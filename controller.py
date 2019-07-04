@@ -26,11 +26,13 @@ class PatternDumpController:
     def get_audio_devices(self):
         return self._audio_recorder.get_audio_devices()
 
-    def select_audio_device(self, device_name):
+    def set_audio_device(self, device_name):
         self._audio_recorder.set_audio_device(device_name)
 
-    def set_audio_device_settings(self, samplerate, bitrate):
+    def set_samplerate(self, samplerate):
         self._audio_recorder.samplerate = samplerate
+
+    def set_bitrate(self, bitrate):
         self._audio_recorder.bitrate = bitrate
 
     def set_midi_channel(self, channel):
