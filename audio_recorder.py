@@ -16,7 +16,8 @@ class AudioRecorder:
         self._queue = Queue()
         self._stream = None
         self._consumer = None
-        self.before_first_callback = True
+        self._before_first_callback = True
+        self._latency = 0
 
     def get_audio_devices(self):
         return [
@@ -31,9 +32,9 @@ class AudioRecorder:
         sd.default.blocksize = 128
 
     def _callback(self, indata, frames, time, status):
-        if self.before_first_callback:
-            self.latency = time.currentTime - time.inputBufferAdcTime
-            self.before_first_callback = False
+        if self._before_first_callback:
+            self._latency = time.currentTime - time.inputBufferAdcTime
+            self._before_first_callback = False
         self._queue.put(indata[:])
 
     def prepare_recording(self):
@@ -52,21 +53,17 @@ class AudioRecorder:
         )
 
     def start(self):
-        self.before_first_callback = True
+        self._before_first_callback = True
         self._stream.start()
         self._consumer.start()
-        while self.before_first_callback:
+        while self._before_first_callback:
             sleep(0.0001)
 
     def stop(self):
-        """
-        FIXME: AttributeError: 'AudioRecorder' object has no attribute 'latency'
-        when MIDI output is not set
-        """
-        logging.info(f"Stopping audio recorder. Latency: {self.latency}")
         self._stream.stop()
         self._consumer.stop()
         self._consumer.join()
+        logging.info(f"Audio recorder stopped. Latency: {self._latency}")
 
 
 class Consumer(Thread):

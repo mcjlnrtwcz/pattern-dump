@@ -105,37 +105,27 @@ class PatternDumpGUI:
         )
         self.bitrate_selector.grid(row=2, column=0, sticky=tk.W, pady=self.PADDING)
 
-        self.device_margin = tk.Frame(self.device_settings_frame)
-        self.device_margin.grid(
-            row=3, column=0, columnspan=2, sticky=tk.W + tk.E, pady=2 * self.PADDING
-        )
-
         # MIDI device
-        self.midi_device_selector_label = tk.Label(
-            self.device_settings_frame, text="MIDI device"
-        )
-        self.midi_device_selector_label.grid(
-            row=4, column=0, sticky=tk.W, pady=self.PADDING
-        )
-        self.midi_device_selector = tk.OptionMenu(
+        self.midi_device_selector = Selector(
             self.device_settings_frame,
-            self.selected_midi_device,
-            *self.controller.get_output_ports()
+            "MIDI device",
+            self.controller.get_midi_devices(),
+            lambda device_name: self.controller.set_midi_device(device_name)
         )
         self.midi_device_selector.grid(
-            row=5, column=0, columnspan=2, sticky=tk.W + tk.E, pady=self.PADDING
+            row=3, column=0, columnspan=2, sticky=tk.W + tk.E, pady=self.PADDING
         )
 
         # MIDI channel
         self.midi_channel_label = tk.Label(
             self.device_settings_frame, text="MIDI channel"
         )
-        self.midi_channel_label.grid(row=6, column=0, sticky=tk.W, pady=self.PADDING)
+        self.midi_channel_label.grid(row=4, column=0, sticky=tk.W, pady=self.PADDING)
         self.midi_channel_input = tk.Entry(
             self.device_settings_frame, width=2, textvariable=self.midi_channel
         )
         self.midi_channel_input.grid(
-            row=6, column=1, sticky=tk.W, padx=self.PADDING, pady=self.PADDING
+            row=4, column=1, sticky=tk.W, padx=self.PADDING, pady=self.PADDING
         )
 
         self.dump_button = tk.Button(self.root, text="Dump", command=self.dump)
@@ -148,33 +138,27 @@ class PatternDumpGUI:
         )
 
     def dump(self):
-        self.controller.set_output_port(self.selected_midi_device.get())
-        # TODO: When can one have invalid audio settings?
-        # try:
-        #     self.controller.set_bitrate(int(self.bitrate.get()))
-        # except ValueError:
-        #     messagebox.showerror("Error", "Invalid audio device settings")
-
         try:
             self.controller.set_midi_channel(int(self.midi_channel.get()))
         except ValueError:
             messagebox.showerror("Error", "MIDI channel must be an integer")
+            return
         except WrongChannelError:
-            messagebox.showerror("Error", "MIDI channel must be in range 1 to 16")
+            messagebox.showerror("Error", "MIDI channel must be in range from 1 to 16")
+            return
 
         try:
             self.controller.dump_pattern(
                 120, int(self.pattern.get()), self.bank.get(), int(self.length.get())
             )
         except ValueError:
-            # TODO: Handle bad input (str to int conversion)
-            messagebox.showerror("Error", "Invalid pattern settings")
+            messagebox.showerror("Error", "Invalid bank or pattern")
 
 
 if __name__ == "__main__":
     logging.basicConfig(
         format="[%(asctime)s][%(levelname)s][%(module)s] %(message)s",
-        level=logging.DEBUG,
+        level=logging.INFO,
     )
     root = tk.Tk()
     controller = PatternDumpController()

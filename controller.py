@@ -17,11 +17,11 @@ class PatternDumpController:
         self._audio_recorder = AudioRecorder()
         self._sequencer = Sequencer(start_callback=self._audio_recorder.start)
 
-    def get_output_ports(self):
+    def get_midi_devices(self):
         return self._sequencer.output_ports
 
-    def set_output_port(self, port):
-        self._sequencer.set_output_port(port)
+    def set_midi_device(self, device_name):
+        self._sequencer.set_output_port(device_name)
 
     def get_audio_devices(self):
         return self._audio_recorder.get_audio_devices()
