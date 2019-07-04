@@ -1,17 +1,26 @@
-env:
-	python3 -m venv .venv
-
 install:
-	pip3 install -r requirements.txt
+	pipenv sync
 
 install_dev:
-	pip3 install -r requirements-dev.txt
+	pipenv install --dev
 
-upgrade:
-	pip3 install -r requirements.txt --upgrade
+update:
+	pipenv update
+
+uninstall:
+	pipenv --rm
+
+start:
+	pipenv run python3.6 pattern-dump.py
+
+shell:
+	pipenv shell --fancy
+
+format:
+	pipenv run black .
 
 sort:
-	isort -s .venv -y
+	pipenv run isort -rc .
 
-style:
-	pycodestyle . --exclude=.venv
+lint:
+	pipenv run flake8 .

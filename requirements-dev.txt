@@ -1,4 +1,0 @@
--r requirements.txt
-
-isort==4.3.4
-pycodestyle==2.4.0

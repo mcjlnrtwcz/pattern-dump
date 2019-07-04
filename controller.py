@@ -13,7 +13,6 @@ class WrongChannelError(Exception):
 
 
 class PatternDumpController:
-
     def __init__(self):
         self._audio_recorder = AudioRecorder()
         self._sequencer = Sequencer(start_callback=self._audio_recorder.start)
@@ -37,22 +36,16 @@ class PatternDumpController:
             raise WrongChannelError
         self._sequencer.set_midi_channel(channel)
 
-    def dump_pattern(
-            self,
-            tempo: int,
-            pattern: int,
-            bank: str,
-            length: int
-    ) -> None:
-        pattern_event = PatternEvent(0, Pattern(pattern, bank, length), 1)
+    def dump_pattern(self, tempo: int, pattern: int, bank: str, length: int) -> None:
+        pattern_event = PatternEvent(0, Pattern("", pattern, bank, length), 1)
         for track in range(1, 9):
-            logging.info(f'Recording track {track}')
-            mute_event = MuteEvent(0, (track, ))
+            logging.info(f"Recording track {track}")
+            mute_event = MuteEvent(0, (track,))
             events = [pattern_event, mute_event]
             sequence = Sequence(tempo, events)
-            self._audio_recorder.filename = f'track{track}.wav'
+            self._audio_recorder.filename = f"track{track}.wav"
             self._audio_recorder.prepare_recording()
             self._sequencer.set_sequence(sequence)
             self._sequencer.start(blocking=True)
             self._audio_recorder.stop()
-        logging.info('All tracks recorded')
+        logging.info("All tracks recorded")
