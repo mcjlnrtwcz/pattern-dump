@@ -74,43 +74,49 @@ class PatternDumpGUI:
         # Audio/MIDI device settings
         self.device_settings_frame = tk.Frame(self.root)
         self.device_settings_frame.grid(
-            row=1, column=0, sticky=tk.W + tk.E, padx=self.PADDING
+            row=1, column=0, columnspan=2, sticky=tk.W, padx=self.PADDING
         )
-        self.device_settings_frame.columnconfigure(1, weight=1)
+        self.device_settings_frame.columnconfigure(0, minsize=240)
 
         # Audio device
         self.audio_device_selector = Selector(
             self.device_settings_frame,
             "Audio device",
             controller.get_audio_devices(),
-            lambda device_name: self.controller.set_audio_device(device_name)
+            lambda device_name: self.controller.set_audio_device(device_name),
         )
-        self.audio_device_selector.grid(row=0, column=0, sticky=tk.W, pady=self.PADDING)
+        self.audio_device_selector.grid(
+            row=0, column=0, columnspan=2, sticky=tk.W + tk.E, pady=self.PADDING
+        )
 
         # Samplerate
         self.samplerate_selector = Selector(
             self.device_settings_frame,
             "Samplerate",
             ("44100", "48000"),
-            lambda samplerate: self.controller.set_samplerate(int(samplerate))
+            lambda samplerate: self.controller.set_samplerate(int(samplerate)),
         )
-        self.samplerate_selector.grid(row=1, column=0, sticky=tk.W, pady=self.PADDING)
+        self.samplerate_selector.grid(
+            row=1, column=0, columnspan=2, sticky=tk.W + tk.E, pady=self.PADDING
+        )
 
         # Bitrate
         self.bitrate_selector = Selector(
             self.device_settings_frame,
             "Bitrate",
             ("16", "24", "32"),
-            lambda bitrate: self.controller.set_bitrate(int(bitrate))
+            lambda bitrate: self.controller.set_bitrate(int(bitrate)),
         )
-        self.bitrate_selector.grid(row=2, column=0, sticky=tk.W, pady=self.PADDING)
+        self.bitrate_selector.grid(
+            row=2, column=0, columnspan=2, sticky=tk.W + tk.E, pady=self.PADDING
+        )
 
         # MIDI device
         self.midi_device_selector = Selector(
             self.device_settings_frame,
             "MIDI device",
             self.controller.get_midi_devices(),
-            lambda device_name: self.controller.set_midi_device(device_name)
+            lambda device_name: self.controller.set_midi_device(device_name),
         )
         self.midi_device_selector.grid(
             row=3, column=0, columnspan=2, sticky=tk.W + tk.E, pady=self.PADDING
@@ -121,17 +127,19 @@ class PatternDumpGUI:
             self.device_settings_frame, text="MIDI channel"
         )
         self.midi_channel_label.grid(row=4, column=0, sticky=tk.W, pady=self.PADDING)
+        # TODO: Move input to the left
         self.midi_channel_input = tk.Entry(
             self.device_settings_frame, width=2, textvariable=self.midi_channel
         )
         self.midi_channel_input.grid(
-            row=4, column=1, sticky=tk.W, padx=self.PADDING, pady=self.PADDING
+            row=4, column=1, padx=self.PADDING, pady=self.PADDING
         )
 
         self.dump_button = tk.Button(self.root, text="Dump", command=self.dump)
         self.dump_button.grid(
             row=2,
             column=0,
+            columnspan=2,
             sticky=tk.E + tk.S,
             padx=self.PADDING,
             pady=2 * self.PADDING,

@@ -41,7 +41,9 @@ class PatternDumpController:
         self._sequencer.set_midi_channel(channel)
 
     def dump_pattern(self, tempo, pattern, bank, length):
-        pattern_event = PatternEvent(0, Pattern(f"{bank}{pattern}", pattern, bank, length), 1)
+        pattern_event = PatternEvent(
+            0, Pattern(f"{bank}{pattern}", pattern, bank, length), 1
+        )
         for track in range(1, 9):
             logging.info(f"Recording track {track}")
             mute_event = MuteEvent(0, (track,))

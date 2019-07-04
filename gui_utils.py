@@ -18,7 +18,5 @@ class Selector(tk.Frame):
         self.title = tk.Label(self, text=title)
         self.title.grid(row=0, sticky=tk.W)
 
-        self.selector = tk.OptionMenu(
-            self, self.choice_var, *choices, command=command
-        )
+        self.selector = tk.OptionMenu(self, self.choice_var, *choices, command=command)
         self.selector.grid(row=1, sticky=tk.W + tk.E)
