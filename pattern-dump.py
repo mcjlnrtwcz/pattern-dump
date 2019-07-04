@@ -6,39 +6,6 @@ from tkinter import messagebox
 from controller import PatternDumpController, WrongChannelError
 from gui_utils import Selector
 
-# TODO: Refactor Selector so that controller is not needed and name is passed directly
-class AudioDeviceSelector(Selector):
-    def __init__(self, controller, parent, *args, **kwargs):
-        self.controller = controller
-        super().__init__(
-            "Audio device", controller.get_audio_devices(), parent, *args, **kwargs
-        )
-
-    def option_command(self, new_value):
-        self.controller.set_audio_device(new_value)
-
-
-class SamplerateSelector(Selector):
-    def __init__(self, controller, parent, *args, **kwargs):
-        self.controller = controller
-        super().__init__(
-            "Samplerate", ("44100", "48000"), parent, *args, **kwargs
-        )
-
-    def option_command(self, new_value):
-        self.controller.set_samplerate(int(new_value))
-
-
-class BitrateSelector(Selector):
-    def __init__(self, controller, parent, *args, **kwargs):
-        self.controller = controller
-        super().__init__(
-            "Bitrate", ("16", "24", "32"), parent, *args, **kwargs
-        )
-
-    def option_command(self, new_value):
-        self.controller.set_bitrate(int(new_value))
-
 
 class PatternDumpGUI:
 
@@ -112,15 +79,30 @@ class PatternDumpGUI:
         self.device_settings_frame.columnconfigure(1, weight=1)
 
         # Audio device
-        self.audio_device_selector = AudioDeviceSelector(controller, self.device_settings_frame)
+        self.audio_device_selector = Selector(
+            self.device_settings_frame,
+            "Audio device",
+            controller.get_audio_devices(),
+            lambda device_name: self.controller.set_audio_device(device_name)
+        )
         self.audio_device_selector.grid(row=0, column=0, sticky=tk.W, pady=self.PADDING)
 
         # Samplerate
-        self.samplerate_selector = SamplerateSelector(controller, self.device_settings_frame)
+        self.samplerate_selector = Selector(
+            self.device_settings_frame,
+            "Samplerate",
+            ("44100", "48000"),
+            lambda samplerate: self.controller.set_samplerate(int(samplerate))
+        )
         self.samplerate_selector.grid(row=1, column=0, sticky=tk.W, pady=self.PADDING)
 
         # Bitrate
-        self.bitrate_selector = BitrateSelector(controller, self.device_settings_frame)
+        self.bitrate_selector = Selector(
+            self.device_settings_frame,
+            "Bitrate",
+            ("16", "24", "32"),
+            lambda bitrate: self.controller.set_bitrate(int(bitrate))
+        )
         self.bitrate_selector.grid(row=2, column=0, sticky=tk.W, pady=self.PADDING)
 
         self.device_margin = tk.Frame(self.device_settings_frame)
@@ -143,6 +125,8 @@ class PatternDumpGUI:
         self.midi_device_selector.grid(
             row=5, column=0, columnspan=2, sticky=tk.W + tk.E, pady=self.PADDING
         )
+
+        # MIDI channel
         self.midi_channel_label = tk.Label(
             self.device_settings_frame, text="MIDI channel"
         )
