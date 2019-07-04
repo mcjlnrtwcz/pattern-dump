@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "9d9af3a448503ca810c83dd2461925ebfa67c4eb36c67f2a406bc33e4bb32aac"
+            "sha256": "a5ee2f08c29910c6ed2405d647ce1d02779ccb1032b61c897558e17d80e2e9bf"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -51,7 +51,7 @@
         },
         "diquencer": {
             "git": "https://github.com/mcjlnrtwcz/diquencer.git",
-            "ref": "c7b9088a328636796a9ba226a2329225cdb5ef79"
+            "ref": "2dadf56928a8e87fa7ae2f46c907803205315138"
         },
         "pycparser": {
             "hashes": [

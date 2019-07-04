@@ -25,8 +25,8 @@ class AudioRecorder:
             if device["max_input_channels"] > 0
         ]
 
-    def set_audio_device(self, device):
-        sd.default.device = device
+    def set_audio_device(self, device_name):
+        sd.default.device = device_name
         sd.default.latency = "low"
         sd.default.blocksize = 128
 
