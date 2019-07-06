@@ -6,21 +6,25 @@ from tkinter import messagebox
 from controller import PatternDumpController, WrongChannelError
 from gui_utils import Selector
 
+
 PADDING = 4
 
 
 class PatternSettingsFrame(tk.Frame):
-    def __init__(self, controller, parent, *args, **kwargs):
+    def __init__(self, parent, controller, *args, **kwargs):
         tk.Frame.__init__(self, parent, *args, **kwargs)
         self.controller = controller
 
         self.pattern = tk.StringVar()
+        self.pattern.trace_add("write", self.pattern_callback)
         self.pattern.set("1")
 
         self.bank = tk.StringVar()
+        self.bank.trace_add("write", self.bank_callback)
         self.bank.set("A")
 
         self.length = tk.StringVar()
+        self.length.trace_add("write", self.length_callback)
         self.length.set("4")
 
         self.pattern_label = tk.Label(self, text="Pattern")
@@ -37,6 +41,27 @@ class PatternSettingsFrame(tk.Frame):
         self.length_label.grid(row=2, column=0, sticky=tk.W, pady=PADDING)
         self.length_input = tk.Entry(self, width=2, textvariable=self.length)
         self.length_input.grid(row=2, column=1, padx=PADDING, pady=PADDING)
+
+    def pattern_callback(self, *args):
+        try:
+            pattern = self.pattern.get()
+            if pattern != "":
+                self.controller.pattern = int(pattern)
+        except ValueError:
+            messagebox.showerror("Error", "Pattern must be a number")
+
+    def bank_callback(self, *args):
+        bank = self.bank.get()
+        if bank != "":
+            self.controller.bank = bank
+
+    def length_callback(self, *args):
+        try:
+            length = self.length.get()
+            if length != "":
+                self.controller.length = int(length)
+        except ValueError:
+            messagebox.showerror("Error", "Length must be a number")
 
 
 class PatternDumpView(tk.Tk):
@@ -61,7 +86,7 @@ class PatternDumpView(tk.Tk):
         self.resizable(False, False)
 
         # Pattern settings
-        self.pattern_settings_frame = PatternSettingsFrame(controller, self)
+        self.pattern_settings_frame = PatternSettingsFrame(self, controller)
         self.pattern_settings_frame.grid(
             row=0, column=0, sticky=tk.W + tk.E + tk.N, padx=PADDING, pady=PADDING
         )
@@ -149,12 +174,7 @@ class PatternDumpView(tk.Tk):
             return
 
         try:
-            self.controller.dump_pattern(
-                120,
-                int(self.pattern_settings_frame.pattern.get()),
-                self.pattern_settings_frame.bank.get(),
-                int(self.pattern_settings_frame.length.get()),
-            )
+            self.controller.dump_pattern(120)
         except ValueError:
             messagebox.showerror("Error", "Invalid bank or pattern")
 
