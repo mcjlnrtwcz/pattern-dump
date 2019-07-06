@@ -10,75 +10,60 @@ from gui_utils import Selector
 PADDING = 4
 
 
+class LabeledEntry(tk.Frame):
+    def __init__(self, parent, name, default_value, callback, *args, **kwargs):
+        tk.Frame.__init__(self, parent, *args, **kwargs)
+        self.user_callback = callback
+
+        self.input_value = tk.StringVar()
+        self.input_value.trace_add("write", self.input_callback)
+        self.input_value.set(default_value)
+
+        self.label = tk.Label(self, text=name)
+        self.label.grid(row=0, column=0, sticky=tk.W, pady=PADDING)
+        self.input = tk.Entry(self, width=2, textvariable=self.input_value)
+        self.input.grid(row=0, column=1, padx=PADDING, pady=PADDING)
+
+    def input_callback(self, *args):
+        input_value = self.input_value.get()
+        if input_value != "":
+            self.user_callback(input_value)
+
+
 class PatternSettingsFrame(tk.Frame):
     def __init__(self, parent, controller, *args, **kwargs):
         tk.Frame.__init__(self, parent, *args, **kwargs)
         self.controller = controller
 
-        self.pattern = tk.StringVar()
-        self.pattern.trace_add("write", self.pattern_callback)
-        self.pattern.set("1")
+        self.pattern_input = LabeledEntry(self, "Pattern", "1", self.pattern_callback)
+        self.pattern_input.grid(row=0, sticky=tk.W)
 
-        self.bank = tk.StringVar()
-        self.bank.trace_add("write", self.bank_callback)
-        self.bank.set("A")
+        self.bank_input = LabeledEntry(self, "Bank", "A", self.bank_callback)
+        self.bank_input.grid(row=1, sticky=tk.W)
 
-        self.length = tk.StringVar()
-        self.length.trace_add("write", self.length_callback)
-        self.length.set("4")
+        self.length_input = LabeledEntry(self, "Length", "4", self.length_callback)
+        self.length_input.grid(row=2, sticky=tk.W)
 
-        self.pattern_label = tk.Label(self, text="Pattern")
-        self.pattern_label.grid(row=0, column=0, sticky=tk.W, pady=PADDING)
-        self.pattern_input = tk.Entry(self, width=2, textvariable=self.pattern)
-        self.pattern_input.grid(row=0, column=1, padx=PADDING, pady=PADDING)
-
-        self.bank_label = tk.Label(self, text="Bank")
-        self.bank_label.grid(row=1, column=0, sticky=tk.W, pady=PADDING)
-        self.bank_input = tk.Entry(self, width=2, textvariable=self.bank)
-        self.bank_input.grid(row=1, column=1, padx=PADDING, pady=PADDING)
-
-        self.length_label = tk.Label(self, text="Length")
-        self.length_label.grid(row=2, column=0, sticky=tk.W, pady=PADDING)
-        self.length_input = tk.Entry(self, width=2, textvariable=self.length)
-        self.length_input.grid(row=2, column=1, padx=PADDING, pady=PADDING)
-
-    def pattern_callback(self, *args):
+    def pattern_callback(self, pattern):
         try:
-            pattern = self.pattern.get()
-            if pattern != "":
-                self.controller.pattern = int(pattern)
+            self.controller.pattern = int(pattern)
         except ValueError:
-            messagebox.showerror("Error", "Pattern must be a number")
+            messagebox.showerror("Error", "Pattern must be a number")  # FIXME
 
-    def bank_callback(self, *args):
-        bank = self.bank.get()
-        if bank != "":
-            self.controller.bank = bank
+    def bank_callback(self, bank):
+        self.controller.bank = bank
 
-    def length_callback(self, *args):
+    def length_callback(self, length):
         try:
-            length = self.length.get()
-            if length != "":
-                self.controller.length = int(length)
+            self.controller.length = int(length)
         except ValueError:
-            messagebox.showerror("Error", "Length must be a number")
+            messagebox.showerror("Error", "Length must be a number")  # FIXME
 
 
 class PatternDumpView(tk.Tk):
     def __init__(self, controller, *args, **kwargs):
         tk.Tk.__init__(self, *args, **kwargs)
         self.controller = controller
-
-        self.samplerate = tk.StringVar()
-        self.samplerate.set("44100")
-
-        self.bitrate = tk.StringVar()
-        self.bitrate.set("16")
-
-        self.midi_channel = tk.StringVar()
-        self.midi_channel.set("1")
-
-        self.selected_midi_device = tk.StringVar()
 
         # Main window
         self.config(padx=PADDING * 2, pady=PADDING)
@@ -143,15 +128,8 @@ class PatternDumpView(tk.Tk):
         )
 
         # MIDI channel
-        self.midi_channel_label = tk.Label(
-            self.device_settings_frame, text="MIDI channel"
-        )
-        self.midi_channel_label.grid(row=4, column=0, sticky=tk.W, pady=PADDING)
-        # TODO: Move input to the left
-        self.midi_channel_input = tk.Entry(
-            self.device_settings_frame, width=2, textvariable=self.midi_channel
-        )
-        self.midi_channel_input.grid(row=4, column=1, padx=PADDING, pady=PADDING)
+        self.midi_channel_input = LabeledEntry(self.device_settings_frame, "MIDI channel", "1", self.set_midi_channel)
+        self.midi_channel_input.grid(row=4, sticky=tk.W)
 
         self.dump_button = tk.Button(self, text="Dump", command=self.dump)
         self.dump_button.grid(
@@ -163,9 +141,9 @@ class PatternDumpView(tk.Tk):
             pady=2 * PADDING,
         )
 
-    def dump(self):
+    def set_midi_channel(self, midi_channel):  # FIXME
         try:
-            self.controller.set_midi_channel(int(self.midi_channel.get()))
+            self.controller.set_midi_channel(int(midi_channel))
         except WrongChannelError:
             messagebox.showerror("Error", "MIDI channel must be in range from 1 to 16")
             return
@@ -173,10 +151,8 @@ class PatternDumpView(tk.Tk):
             messagebox.showerror("Error", "MIDI channel must be an integer")
             return
 
-        try:
-            self.controller.dump_pattern(120)
-        except ValueError:
-            messagebox.showerror("Error", "Invalid bank or pattern")
+    def dump(self):
+        self.controller.dump_pattern(120)
 
 
 if __name__ == "__main__":
