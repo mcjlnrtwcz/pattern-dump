@@ -7,12 +7,12 @@ from controller import PatternDumpController, WrongChannelError
 from gui_utils import Selector
 
 
-class PatternDumpGUI:
+class PatternDumpView(tk.Tk):
 
     PADDING = 4
 
-    def __init__(self, root, controller):
-        self.root = root
+    def __init__(self, controller, *args, **kwargs):
+        tk.Tk.__init__(self, *args, **kwargs)
         self.controller = controller
 
         self.pattern = tk.StringVar()
@@ -36,12 +36,12 @@ class PatternDumpGUI:
         self.selected_midi_device = tk.StringVar()
 
         # Main window
-        self.root.config(padx=self.PADDING * 2, pady=self.PADDING)
-        self.root.title("pattern-dump")
-        self.root.resizable(False, False)
+        self.config(padx=self.PADDING * 2, pady=self.PADDING)
+        self.title("pattern-dump")
+        self.resizable(False, False)
 
         # Pattern settings
-        self.pattern_settings_frame = tk.Frame(self.root)
+        self.pattern_settings_frame = tk.Frame(self)
         self.pattern_settings_frame.grid(
             row=0,
             column=0,
@@ -72,7 +72,7 @@ class PatternDumpGUI:
         self.length_input.grid(row=2, column=1, padx=self.PADDING, pady=self.PADDING)
 
         # Audio/MIDI device settings
-        self.device_settings_frame = tk.Frame(self.root)
+        self.device_settings_frame = tk.Frame(self)
         self.device_settings_frame.grid(
             row=1, column=0, columnspan=2, sticky=tk.W, padx=self.PADDING
         )
@@ -135,7 +135,7 @@ class PatternDumpGUI:
             row=4, column=1, padx=self.PADDING, pady=self.PADDING
         )
 
-        self.dump_button = tk.Button(self.root, text="Dump", command=self.dump)
+        self.dump_button = tk.Button(self, text="Dump", command=self.dump)
         self.dump_button.grid(
             row=2,
             column=0,
@@ -148,11 +148,11 @@ class PatternDumpGUI:
     def dump(self):
         try:
             self.controller.set_midi_channel(int(self.midi_channel.get()))
-        except ValueError:
-            messagebox.showerror("Error", "MIDI channel must be an integer")
-            return
         except WrongChannelError:
             messagebox.showerror("Error", "MIDI channel must be in range from 1 to 16")
+            return
+        except ValueError:
+            messagebox.showerror("Error", "MIDI channel must be an integer")
             return
 
         try:
@@ -168,7 +168,6 @@ if __name__ == "__main__":
         format="[%(asctime)s][%(levelname)s][%(module)s] %(message)s",
         level=logging.INFO,
     )
-    root = tk.Tk()
     controller = PatternDumpController()
-    PatternDumpGUI(root, controller)
-    root.mainloop()
+    view = PatternDumpView(controller)
+    view.mainloop()
