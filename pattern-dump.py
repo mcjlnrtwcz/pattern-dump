@@ -6,13 +6,12 @@ from tkinter import messagebox
 from controller import PatternDumpController, WrongChannelError
 from gui_utils import Selector
 
+PADDING = 4
 
-class PatternDumpView(tk.Tk):
 
-    PADDING = 4
-
-    def __init__(self, controller, *args, **kwargs):
-        tk.Tk.__init__(self, *args, **kwargs)
+class PatternSettingsFrame(tk.Frame):
+    def __init__(self, controller, parent, *args, **kwargs):
+        tk.Frame.__init__(self, parent, *args, **kwargs)
         self.controller = controller
 
         self.pattern = tk.StringVar()
@@ -23,6 +22,27 @@ class PatternDumpView(tk.Tk):
 
         self.length = tk.StringVar()
         self.length.set("4")
+
+        self.pattern_label = tk.Label(self, text="Pattern")
+        self.pattern_label.grid(row=0, column=0, sticky=tk.W, pady=PADDING)
+        self.pattern_input = tk.Entry(self, width=2, textvariable=self.pattern)
+        self.pattern_input.grid(row=0, column=1, padx=PADDING, pady=PADDING)
+
+        self.bank_label = tk.Label(self, text="Bank")
+        self.bank_label.grid(row=1, column=0, sticky=tk.W, pady=PADDING)
+        self.bank_input = tk.Entry(self, width=2, textvariable=self.bank)
+        self.bank_input.grid(row=1, column=1, padx=PADDING, pady=PADDING)
+
+        self.length_label = tk.Label(self, text="Length")
+        self.length_label.grid(row=2, column=0, sticky=tk.W, pady=PADDING)
+        self.length_input = tk.Entry(self, width=2, textvariable=self.length)
+        self.length_input.grid(row=2, column=1, padx=PADDING, pady=PADDING)
+
+
+class PatternDumpView(tk.Tk):
+    def __init__(self, controller, *args, **kwargs):
+        tk.Tk.__init__(self, *args, **kwargs)
+        self.controller = controller
 
         self.samplerate = tk.StringVar()
         self.samplerate.set("44100")
@@ -36,45 +56,20 @@ class PatternDumpView(tk.Tk):
         self.selected_midi_device = tk.StringVar()
 
         # Main window
-        self.config(padx=self.PADDING * 2, pady=self.PADDING)
+        self.config(padx=PADDING * 2, pady=PADDING)
         self.title("pattern-dump")
         self.resizable(False, False)
 
         # Pattern settings
-        self.pattern_settings_frame = tk.Frame(self)
+        self.pattern_settings_frame = PatternSettingsFrame(controller, self)
         self.pattern_settings_frame.grid(
-            row=0,
-            column=0,
-            sticky=tk.W + tk.E + tk.N,
-            padx=self.PADDING,
-            pady=self.PADDING,
+            row=0, column=0, sticky=tk.W + tk.E + tk.N, padx=PADDING, pady=PADDING
         )
-
-        self.pattern_label = tk.Label(self.pattern_settings_frame, text="Pattern")
-        self.pattern_label.grid(row=0, column=0, sticky=tk.W, pady=self.PADDING)
-        self.pattern_input = tk.Entry(
-            self.pattern_settings_frame, width=2, textvariable=self.pattern
-        )
-        self.pattern_input.grid(row=0, column=1, padx=self.PADDING, pady=self.PADDING)
-
-        self.bank_label = tk.Label(self.pattern_settings_frame, text="Bank")
-        self.bank_label.grid(row=1, column=0, sticky=tk.W, pady=self.PADDING)
-        self.bank_input = tk.Entry(
-            self.pattern_settings_frame, width=2, textvariable=self.bank
-        )
-        self.bank_input.grid(row=1, column=1, padx=self.PADDING, pady=self.PADDING)
-
-        self.length_label = tk.Label(self.pattern_settings_frame, text="Length")
-        self.length_label.grid(row=2, column=0, sticky=tk.W, pady=self.PADDING)
-        self.length_input = tk.Entry(
-            self.pattern_settings_frame, width=2, textvariable=self.length
-        )
-        self.length_input.grid(row=2, column=1, padx=self.PADDING, pady=self.PADDING)
 
         # Audio/MIDI device settings
         self.device_settings_frame = tk.Frame(self)
         self.device_settings_frame.grid(
-            row=1, column=0, columnspan=2, sticky=tk.W, padx=self.PADDING
+            row=1, column=0, columnspan=2, sticky=tk.W, padx=PADDING
         )
         self.device_settings_frame.columnconfigure(0, minsize=240)
 
@@ -86,7 +81,7 @@ class PatternDumpView(tk.Tk):
             lambda device_name: self.controller.set_audio_device(device_name),
         )
         self.audio_device_selector.grid(
-            row=0, column=0, columnspan=2, sticky=tk.W + tk.E, pady=self.PADDING
+            row=0, column=0, columnspan=2, sticky=tk.W + tk.E, pady=PADDING
         )
 
         # Samplerate
@@ -97,7 +92,7 @@ class PatternDumpView(tk.Tk):
             lambda samplerate: self.controller.set_samplerate(int(samplerate)),
         )
         self.samplerate_selector.grid(
-            row=1, column=0, columnspan=2, sticky=tk.W + tk.E, pady=self.PADDING
+            row=1, column=0, columnspan=2, sticky=tk.W + tk.E, pady=PADDING
         )
 
         # Bitrate
@@ -108,7 +103,7 @@ class PatternDumpView(tk.Tk):
             lambda bitrate: self.controller.set_bitrate(int(bitrate)),
         )
         self.bitrate_selector.grid(
-            row=2, column=0, columnspan=2, sticky=tk.W + tk.E, pady=self.PADDING
+            row=2, column=0, columnspan=2, sticky=tk.W + tk.E, pady=PADDING
         )
 
         # MIDI device
@@ -119,21 +114,19 @@ class PatternDumpView(tk.Tk):
             lambda device_name: self.controller.set_midi_device(device_name),
         )
         self.midi_device_selector.grid(
-            row=3, column=0, columnspan=2, sticky=tk.W + tk.E, pady=self.PADDING
+            row=3, column=0, columnspan=2, sticky=tk.W + tk.E, pady=PADDING
         )
 
         # MIDI channel
         self.midi_channel_label = tk.Label(
             self.device_settings_frame, text="MIDI channel"
         )
-        self.midi_channel_label.grid(row=4, column=0, sticky=tk.W, pady=self.PADDING)
+        self.midi_channel_label.grid(row=4, column=0, sticky=tk.W, pady=PADDING)
         # TODO: Move input to the left
         self.midi_channel_input = tk.Entry(
             self.device_settings_frame, width=2, textvariable=self.midi_channel
         )
-        self.midi_channel_input.grid(
-            row=4, column=1, padx=self.PADDING, pady=self.PADDING
-        )
+        self.midi_channel_input.grid(row=4, column=1, padx=PADDING, pady=PADDING)
 
         self.dump_button = tk.Button(self, text="Dump", command=self.dump)
         self.dump_button.grid(
@@ -141,8 +134,8 @@ class PatternDumpView(tk.Tk):
             column=0,
             columnspan=2,
             sticky=tk.E + tk.S,
-            padx=self.PADDING,
-            pady=2 * self.PADDING,
+            padx=PADDING,
+            pady=2 * PADDING,
         )
 
     def dump(self):
@@ -157,7 +150,10 @@ class PatternDumpView(tk.Tk):
 
         try:
             self.controller.dump_pattern(
-                120, int(self.pattern.get()), self.bank.get(), int(self.length.get())
+                120,
+                int(self.pattern_settings_frame.pattern.get()),
+                self.pattern_settings_frame.bank.get(),
+                int(self.pattern_settings_frame.length.get()),
             )
         except ValueError:
             messagebox.showerror("Error", "Invalid bank or pattern")
